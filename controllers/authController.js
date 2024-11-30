@@ -142,7 +142,7 @@ const googleCallback = async (req, res) => {
         const token = jwt.sign(
             { id: existingUser.id, role: existingUser.role },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '18h' }
         );
 
         // Kembalikan token ke pengguna
