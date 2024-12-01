@@ -20,4 +20,4 @@ const configureMiddleware = (app) => {
   app.use(bodyParser.urlencoded({ extended: true }));
 };
 
-export default configureMiddleware;
+module.exports = configureMiddleware;
