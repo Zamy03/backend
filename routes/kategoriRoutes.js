@@ -1,5 +1,11 @@
 const express = require('express');
-const { getAllKategori, getKategoriById, createKategori, updateKategori, deleteKategori} = require('../controllers/kategoriController');
+const { 
+    getAllKategori, 
+    getKategoriById, 
+    createKategori, 
+    updateKategori, 
+    deleteKategori
+} = require('../controllers/kategoriController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const { auth } = require('googleapis/build/src/apis/abusiveexperiencereport');
 const router = express.Router();
