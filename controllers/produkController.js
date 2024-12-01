@@ -14,7 +14,9 @@ const getAllProduk = async (req, res) => {
                 nama,
                 deskripsi,
                 kategori:kategori(jenis_kategori),
-                gambar
+                gambar,
+                qty,
+                harga
             `);
 
         if (error) throw error;
@@ -33,7 +35,7 @@ const getProdukById = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('produk')
-            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar')
+            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga')
             .eq('id', id)
             .single();
 
@@ -49,10 +51,10 @@ const getProdukById = async (req, res) => {
 
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
-    const { nama, deskripsi, nama_kategori } = req.body;
+    const { nama, deskripsi, nama_kategori, qty, harga } = req.body;
     const file = req.file; // Ambil file dari Multer
 
-    if (!nama || !deskripsi || !nama_kategori || !file) {
+    if (!nama || !deskripsi || !nama_kategori || !file || !qty || !harga) {
         return res.status(400).json({ message: 'All fields and file are required' });
     }
 
@@ -84,7 +86,7 @@ const createProduk = async (req, res) => {
         // Tambahkan produk dengan nama file gambar
         const { data, error } = await supabase
             .from('produk')
-            .insert([{ nama, deskripsi, id_kategori: kategori.id, gambar: fileName }])
+            .insert([{ nama, deskripsi, id_kategori: kategori.id, gambar: fileName, qty, harga }])
             .select();
 
         if (error) throw error;
@@ -98,10 +100,10 @@ const createProduk = async (req, res) => {
 // **UPDATE Produk**
 const updateProduk = async (req, res) => {
     const { id } = req.params;
-    const { nama, deskripsi, nama_kategori } = req.body;
+    const { nama, deskripsi, nama_kategori, qty, harga } = req.body;
     const file = req.file; // Ambil file dari multer jika ada
 
-    if (!nama || !deskripsi || !nama_kategori || !file) {
+    if (!nama || !deskripsi || !nama_kategori || !file || !qty || !harga) {
         return res.status(400).json({ message: 'All fields (nama, deskripsi, nama_kategori) are required' });
     }
 
@@ -158,9 +160,11 @@ const updateProduk = async (req, res) => {
                 deskripsi,
                 id_kategori: kategori.id,
                 ...(gambarFileName && { gambar: gambarFileName }),
+                qty,
+                harga,
             })
             .eq('id', id)
-            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar');
+            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga');
 
         if (error) throw error;
 
