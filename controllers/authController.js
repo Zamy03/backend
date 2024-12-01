@@ -9,7 +9,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const OAuth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    'https://proyek-3-proyek.github.io/tokline.github.io/index.html'
+    'https://backend-eight-phi-75.vercel.app/api/auth/google/callback'
 );
 
 const scopes = [
@@ -145,9 +145,9 @@ const googleCallback = async (req, res) => {
             { expiresIn: '18h' }
         );
 
-        // Kembalikan token ke pengguna
-        res.json({ message: 'Login successful', token });
-        res.redirect('https://proyek-3-proyek.github.io/tokline.github.io/index.html');
+         // Redirect ke frontend dengan token di query string
+         const frontendUrl = `https://proyek-3-proyek.github.io/tokline.github.io/index.html?token=${token}`;
+         res.redirect(frontendUrl);
 
     } catch (error) {
         res.status(500).json({ message: 'Error logging in with Google', error: error.message });
