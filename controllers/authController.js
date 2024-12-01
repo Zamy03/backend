@@ -147,6 +147,7 @@ const googleCallback = async (req, res) => {
 
         // Kembalikan token ke pengguna
         res.json({ message: 'Login successful', token });
+        res.redirect('https://proyek-3-proyek.github.io/tokline.github.io/index.html');
 
     } catch (error) {
         res.status(500).json({ message: 'Error logging in with Google', error: error.message });
