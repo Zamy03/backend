@@ -9,7 +9,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const OAuth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    'https://backend-eight-phi-75.vercel.app/api/auth/google/callback'
+    'https://proyek-3-proyek.github.io/tokline.github.io/index.html'
 );
 
 const scopes = [
