@@ -1,6 +1,7 @@
 const MidtransClient = require('midtrans-client');
 const { createClient } = require('@supabase/supabase-js');
 const { nanoid } = require('nanoid');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -11,18 +12,41 @@ const snap = new MidtransClient.Snap({
     clientKey: process.env.MIDTRANS_CLIENT_KEY
 });
 
+// const updateStatusBasedOnMidtrans = async (transaction_id, data) => {
+//     const hash = crypto.createHash('sha512').update(`${data.order_id}${data.status_code}${data.gross_amount}${data.payment_type}${process.env.MIDTRANS_SERVER_KEY}`).digest('hex');
+
+//     if (data.signature_key !== hash) {
+//         return {
+//             status: 'error',
+//             message: 'Invalid signature key'
+//         }
+//     }
+
+//     let responseData = null;
+//     let transactionStatus = data.transaction_status;
+//     let fraudStatus = data.fraud_status;
+
+//     if (transactionStatus === 'capture') {
+//         if (fraudStatus === 'accept') {
+//             const transaction = await transactionService.UpdateTransactionStatus(transaction_id, status : 'success');
+//         }
+//     }else if (transactionStatus === 'settlement') {
+//     } else if (transactionStatus === 'cancel' || transactionStatus === 'deny' || transactionStatus === 'expire') {
+//     }else if (transactionStatus === 'pending') {
+//     }
+// }
 const createTransaction = async (req, res) => {
     const { id_produk, jumlah, total_harga } = req.body;
     const id_user = req.user.id; // ID user dari token JWT
 
     try {
-        const { data: users } = await supabase
+        const { data: user } = await supabase
             .from('users')
-            .select('id, nama, email')
+            .select('id, nama, no_hp, email')
             .eq('id', id_user)
             .single();
 
-        if (!users) return res.status(404).json({ message: 'User not found' });
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
         const { data: produk } = await supabase
             .from('produk')
@@ -51,12 +75,13 @@ const createTransaction = async (req, res) => {
                 }
             ],
             customer_details: {
-                name: users.nama,
-                email: users.email,
+                first_name: user.nama,
+                phone: user.no_hp ? user.no_hp.replace(/^0/, "+62") : "-", // Ubah 0 menjadi +62,
+                email: user.email,
             }
         };
 
-        const response = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
+        const response = await fetch('https://app.midtrans.com/snap/v1/transactions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -87,6 +112,9 @@ const createTransaction = async (req, res) => {
             .from('transactions')
             .insert([transaction]);
 
+        console.log("User Data:", user);
+        console.log("Payload to Midtrans:", payload);
+
         if (error) throw error;
 
         // Update stok produk
@@ -115,5 +143,31 @@ const createTransaction = async (req, res) => {
         res.status(500).json({ message: 'Error creating transaction', error: error.message });
     }
 };
+
+// const transactionCallback = async (req, res) => {
+//     const { transaction_id } = req.params;
+
+//     transactionService.getTransactionById(transaction_id)
+//         .then((transaction) => {
+//             if(transaction){
+
+//             }
+
+//             if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+
+//             const { status } = req.body;
+//             const { id_produk, jumlah } = transaction;
+
+//             if (status === 'capture') {
+            
+//             } else if (status === 'settlement') {
+                
+//             }
+//         });
+
+//     res.status(200).json({ status: 'Success', 
+//         message: 'OK' 
+//     });
+// }
 
 module.exports = { createTransaction };
