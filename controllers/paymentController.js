@@ -144,6 +144,55 @@ const createTransaction = async (req, res) => {
     }
 };
 
+// Fungsi untuk menangani notifikasi pembayaran
+async function handlePaymentNotification(req, res) {
+    try {
+      const notification = req.body;
+  
+      // Verifikasi notifikasi dari Midtrans
+      const transactionStatus = notification.transaction_status;
+      const transaksiId = notification.order_id; // Ganti dari order_id ke transaksi_id
+  
+      console.log("Notifikasi diterima untuk Transaksi ID:", transaksiId);
+      console.log("Status Transaksi:", transactionStatus);
+  
+      // Tentukan status baru
+      let newStatus = "";
+      if (transactionStatus === "settlement" || transactionStatus === "capture") {
+        newStatus = "paid"; // Pembayaran berhasil
+      } else if (transactionStatus === "pending") {
+        newStatus = "pending"; // Menunggu pembayaran
+      } else if (
+        transactionStatus === "cancel" ||
+        transactionStatus === "deny" ||
+        transactionStatus === "expire"
+      ) {
+        newStatus = "failed"; // Pembayaran gagal
+      }
+  
+      if (newStatus) {
+        // Update status di tabel transaction Supabase
+        const { data, error } = await supabase
+          .from("transactions") // Nama tabel diubah dari transactions ke transaction
+          .update({ status: newStatus })
+          .eq("transaksi_id", transaksiId); // Ganti dari order_id ke transaksi_id
+  
+        if (error) {
+          console.error("Gagal mengupdate status di Supabase:", error);
+          return res.status(500).json({ message: "Gagal mengupdate status transaksi." });
+        }
+  
+        console.log("Status transaksi berhasil diperbarui di Supabase:", data);
+        return res.status(200).json({ message: "Notifikasi diterima dan diproses." });
+      } else {
+        return res.status(400).json({ message: "Status transaksi tidak dikenali." });
+      }
+    } catch (error) {
+      console.error("Error memproses notifikasi:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  }
+  
 // const transactionCallback = async (req, res) => {
 //     const { transaction_id } = req.params;
 
@@ -170,4 +219,4 @@ const createTransaction = async (req, res) => {
 //     });
 // }
 
-module.exports = { createTransaction };
+module.exports = { createTransaction, handlePaymentNotification };
