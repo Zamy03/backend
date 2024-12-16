@@ -192,6 +192,37 @@ async function handlePaymentNotification(req, res) {
       return res.status(500).json({ message: "Internal server error." });
     }
   }
+
+  // Get all transactions
+  const getAllTransactions = async (req, res) => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*');
+  
+    if (error) {
+      console.error("Error fetching transactions:", error);
+      return res.status(500).json({ message: "Error fetching transactions." });
+    }
+  
+    return res.status(200).json(data);
+  }
+
+  // Get transaction by user ID
+  const getTransactionByUserId = async (req, res) => {
+    const { id } = req.params;
+  
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id_user', id);
+  
+    if (error) {
+      console.error("Error fetching transactions:", error);
+      return res.status(500).json({ message: "Error fetching transactions." });
+    }
+  
+    return res.status(200).json(data);
+  }
   
 // const transactionCallback = async (req, res) => {
 //     const { transaction_id } = req.params;
@@ -219,4 +250,4 @@ async function handlePaymentNotification(req, res) {
 //     });
 // }
 
-module.exports = { createTransaction, handlePaymentNotification };
+module.exports = { createTransaction, handlePaymentNotification, getAllTransactions, getTransactionByUserId };
