@@ -51,7 +51,7 @@ const getProdukById = async (req, res) => {
 
 // **GET Produk Berdasarkan Kategori ID**
 const getProdukByKategori = async (req, res) => {
-    const { kategori_id } = req.params;
+    const { id_kategori } = req.params;
 
     try {
         const { data, error } = await supabase
@@ -68,7 +68,7 @@ const getProdukByKategori = async (req, res) => {
                 qty,
                 harga
             `)
-            .eq('kategori.id', kategori_id) // Filter berdasarkan kategori.id
+            .eq('kategori.id', id_kategori) // Filter berdasarkan kategori.id
             .neq('kategori', null); // Hanya ambil produk yang memiliki kategori
 
         if (error) throw error;
