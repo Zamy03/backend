@@ -51,7 +51,7 @@ const getProdukById = async (req, res) => {
 
 // **GET Produk Berdasarkan Kategori ID**
 const getProdukByKategori = async (req, res) => {
-    const { id_kategori } = req.params;
+    const { id_kategori } = req.params; // Menggunakan kategori_id dari req.params
 
     try {
         const { data, error } = await supabase
@@ -60,7 +60,7 @@ const getProdukByKategori = async (req, res) => {
                 id,
                 nama,
                 deskripsi,
-                kategori: kategori_id (
+                kategori (
                     id,
                     jenis_kategori
                 ),
@@ -81,7 +81,6 @@ const getProdukByKategori = async (req, res) => {
         res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
     }
 };
-
 
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
