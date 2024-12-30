@@ -56,8 +56,18 @@ const getProdukByKategori = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('produk')
-            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga')
-            .eq('kategori:jenis_kategori', nama_kategori);
+            .select(`
+                id,
+                nama,
+                deskripsi,
+                kategori (
+                    jenis_kategori
+                ),
+                gambar,
+                qty,
+                harga
+            `)
+            .eq('kategori.jenis_kategori', nama_kategori);
 
         if (error) throw error;
 
