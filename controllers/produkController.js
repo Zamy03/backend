@@ -61,23 +61,27 @@ const getProdukByKategori = async (req, res) => {
                 nama,
                 deskripsi,
                 kategori (
+                    id,
                     jenis_kategori
                 ),
                 gambar,
                 qty,
                 harga
             `)
-            .eq('kategori.jenis_kategori', nama_kategori);
+            .eq('kategori.jenis_kategori', nama_kategori); // Filter berdasarkan jenis_kategori
 
         if (error) throw error;
 
-        if (!data.length) return res.status(404).json({ message: 'Produk not found' });
+        if (!data.length) {
+            return res.status(404).json({ message: 'Produk not found' });
+        }
 
         res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
     }
 };
+
 
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
