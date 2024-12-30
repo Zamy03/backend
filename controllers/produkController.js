@@ -51,24 +51,12 @@ const getProdukById = async (req, res) => {
 
 // **GET Produk Berdasarkan Kategori ID**
 const getProdukByKategori = async (req, res) => {
-    const { id_kategori } = req.params; // Menggunakan kategori_id dari req.params
-
+    const { id } = req.params; 
     try {
         const { data, error } = await supabase
             .from('produk')
-            .select(`
-                id,
-                nama,
-                deskripsi,
-                kategori: id_kategori (
-                    id,
-                    jenis_kategori
-                ),
-                gambar,
-                qty,
-                harga
-            `)
-            .eq('kategori.id', id_kategori); // Filter berdasarkan kategori.id
+            .select(`*`)
+            .eq('id_kategori', id); 
             
 
         if (error) throw error;
@@ -79,6 +67,8 @@ const getProdukByKategori = async (req, res) => {
 
         res.status(200).json(data);
     } catch (error) {
+        console.log(error);
+        
         res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
     }
 };
