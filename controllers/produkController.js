@@ -60,7 +60,7 @@ const getProdukByKategori = async (req, res) => {
                 id,
                 nama,
                 deskripsi,
-                kategori (
+                kategori: kategori_id (
                     id,
                     jenis_kategori
                 ),
@@ -68,8 +68,7 @@ const getProdukByKategori = async (req, res) => {
                 qty,
                 harga
             `)
-            .eq('kategori.id', id_kategori) // Filter berdasarkan kategori.id
-            .neq('kategori', null); // Hanya ambil produk yang memiliki kategori
+            .eq('kategori.id', id_kategori); // Filter berdasarkan kategori.id
 
         if (error) throw error;
 
@@ -82,6 +81,7 @@ const getProdukByKategori = async (req, res) => {
         res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
     }
 };
+
 
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
