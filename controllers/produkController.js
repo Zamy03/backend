@@ -68,8 +68,8 @@ const getProdukByKategori = async (req, res) => {
                 qty,
                 harga
             `)
-            .eq('kategori.id', id_kategori) // Filter berdasarkan kategori.id
-            .neq('kategori', null);
+            .eq('kategori.id', id_kategori); // Filter berdasarkan kategori.id
+            
 
         if (error) throw error;
 
