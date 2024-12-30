@@ -60,7 +60,7 @@ const getProdukByKategori = async (req, res) => {
                 id,
                 nama,
                 deskripsi,
-                kategori (
+                kategori: id_kategori (
                     id,
                     jenis_kategori
                 ),
