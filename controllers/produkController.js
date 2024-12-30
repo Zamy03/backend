@@ -49,9 +49,9 @@ const getProdukById = async (req, res) => {
     }
 };
 
-// **GET Produk Berdasarkan Kategori**
+// **GET Produk Berdasarkan Kategori ID**
 const getProdukByKategori = async (req, res) => {
-    const { nama_kategori } = req.params;
+    const { id_kategori } = req.params; // Menggunakan kategori_id dari req.params
 
     try {
         const { data, error } = await supabase
@@ -68,7 +68,7 @@ const getProdukByKategori = async (req, res) => {
                 qty,
                 harga
             `)
-            .eq('kategori.jenis_kategori', nama_kategori); // Filter berdasarkan jenis_kategori
+            .eq('kategori.id', id_kategori); // Filter berdasarkan kategori.id
 
         if (error) throw error;
 
@@ -81,7 +81,6 @@ const getProdukByKategori = async (req, res) => {
         res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
     }
 };
-
 
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
