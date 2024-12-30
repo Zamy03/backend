@@ -49,6 +49,26 @@ const getProdukById = async (req, res) => {
     }
 };
 
+// **GET Produk Berdasarkan Kategori**
+const getProdukByKategori = async (req, res) => {
+    const { nama_kategori } = req.params;
+
+    try {
+        const { data, error } = await supabase
+            .from('produk')
+            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga')
+            .eq('kategori:jenis_kategori', nama_kategori);
+
+        if (error) throw error;
+
+        if (!data.length) return res.status(404).json({ message: 'Produk not found' });
+
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching produk by kategori', error: error.message });
+    }
+};
+
 // **POST Produk Baru**
 const createProduk = async (req, res) => {
     const { nama, deskripsi, nama_kategori, qty, harga } = req.body;
@@ -197,4 +217,4 @@ const deleteProduk = async (req, res) => {
     }
 };
 
-module.exports = { getAllProduk, getProdukById, createProduk, updateProduk, deleteProduk };
+module.exports = { getAllProduk, getProdukById, getProdukByKategori,createProduk, updateProduk, deleteProduk };
