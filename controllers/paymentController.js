@@ -37,7 +37,7 @@ const snap = new MidtransClient.Snap({
 // }
 const createTransaction = async (req, res) => {
     const { id_produk, jumlah, total_harga } = req.body;
-    const id_user = req.user.id; // ID user dari token JWT
+    const id_user = req.user.id_user; // ID user dari token JWT
 
     try {
         const { data: user } = await supabase
