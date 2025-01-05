@@ -10,7 +10,7 @@ const getAllProduk = async (req, res) => {
         const { data, error } = await supabase
             .from('produk')
             .select(`
-                id,
+                id_produk,
                 nama,
                 deskripsi,
                 kategori:kategori(jenis_kategori),
@@ -35,8 +35,8 @@ const getProdukById = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('produk')
-            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga')
-            .eq('id', id)
+            .select('id_produk, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga')
+            .eq('id_produk', id)
             .single();
 
         if (error) throw error;
@@ -55,7 +55,7 @@ const getProdukByKategori = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('produk')
-            .select(`id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga`)
+            .select(`id_produk, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga`)
             .eq('id_kategori', id); 
             
 
@@ -86,7 +86,7 @@ const createProduk = async (req, res) => {
         // Cari ID kategori berdasarkan nama_kategori
         const { data: kategori, error: kategoriError } = await supabase
             .from('kategori')
-            .select(`id,
+            .select(`id_kategori,
                 jenis_kategori`)
             .eq('jenis_kategori', nama_kategori)
             .single();
@@ -125,7 +125,7 @@ const createProduk = async (req, res) => {
 const updateProduk = async (req, res) => {
     const { id } = req.params;
     const { nama, deskripsi, nama_kategori, qty, harga } = req.body;
-    const file = req.file; // Ambil file dari multer jika ada
+    const file = req.file; // Ambil file dari multer
 
     if (!nama || !deskripsi || !nama_kategori || !file || !qty || !harga) {
         return res.status(400).json({ message: 'All fields (nama, deskripsi, nama_kategori) are required' });
@@ -135,7 +135,7 @@ const updateProduk = async (req, res) => {
         // Cari ID kategori berdasarkan nama_kategori
         const { data: kategori, error: kategoriError } = await supabase
             .from('kategori')
-            .select('id')
+            .select('id_kategori')
             .eq('jenis_kategori', nama_kategori)
             .single();
 
@@ -150,7 +150,7 @@ const updateProduk = async (req, res) => {
             const { data: existingProduk, error: fetchError } = await supabase
                 .from('produk')
                 .select('gambar')
-                .eq('id', id)
+                .eq('id_produk', id)
                 .single();
 
             if (fetchError || !existingProduk) {
@@ -187,8 +187,8 @@ const updateProduk = async (req, res) => {
                 qty,
                 harga,
             })
-            .eq('id', id)
-            .select('id, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga');
+            .eq('id_produk', id)
+            .select('id_produk, nama, deskripsi, kategori:kategori(jenis_kategori), gambar, qty, harga');
 
         if (error) throw error;
 
@@ -208,7 +208,7 @@ const deleteProduk = async (req, res) => {
         const { data, error } = await supabase
             .from('produk')
             .delete()
-            .eq('id', id)
+            .eq('id_produk', id)
             .select();
 
         if (error) throw error;
