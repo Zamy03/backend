@@ -43,22 +43,45 @@ const getKategoriById = async (req, res) => {
 const createKategori = async (req, res) => {
     const { jenis_kategori } = req.body;
 
+    // Validasi: Pastikan jenis_kategori diisi
     if (!jenis_kategori) {
         return res.status(400).json({ message: 'jenis_kategori is required' });
     }
 
+    // Validasi: Pastikan jenis_kategori tidak berupa angka atau kombinasi yang tidak masuk akal
+    const isValidKategori = /^[A-Za-z\s]+$/.test(jenis_kategori); // Hanya huruf dan spasi yang diizinkan
+    if (!isValidKategori) {
+        return res.status(400).json({
+            message: 'jenis_kategori must only contain letters and spaces'
+        });
+    }
+
     try {
+        // Cek apakah kategori sudah ada
+        const { data: existingKategori, error: fetchError } = await supabase
+            .from('kategori')
+            .select('*')
+            .eq('jenis_kategori', jenis_kategori);
+
+        if (fetchError) throw fetchError;
+
+        if (existingKategori.length > 0) {
+            return res.status(409).json({ message: 'Kategori already exists' });
+        }
+
+        // Insert kategori baru
         const { data, error } = await supabase
             .from('kategori')
             .insert([{ jenis_kategori }]);
 
         if (error) throw error;
 
-        res.status(201).json({ message: 'Kategori created successfully'});
+        res.status(201).json({ message: 'Kategori created successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error creating kategori', error: error.message });
     }
 };
+
 
 // **PUT Update Kategori**
 const updateKategori = async (req, res) => {
