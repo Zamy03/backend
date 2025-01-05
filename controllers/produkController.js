@@ -110,7 +110,7 @@ const createProduk = async (req, res) => {
         // Tambahkan produk dengan nama file gambar
         const { data, error } = await supabase
             .from('produk')
-            .insert([{ nama, deskripsi, id_kategori: kategori.id, gambar: fileName, qty, harga }])
+            .insert([{ nama, deskripsi, id_kategori: kategori.id_kategori, gambar: fileName, qty, harga }])
             .select();
 
         if (error) throw error;
@@ -182,7 +182,7 @@ const updateProduk = async (req, res) => {
             .update({
                 nama,
                 deskripsi,
-                id_kategori: kategori.id,
+                id_kategori: kategori.id_kategori,
                 ...(gambarFileName && { gambar: gambarFileName }),
                 qty,
                 harga,
