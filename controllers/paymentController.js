@@ -42,16 +42,16 @@ const createTransaction = async (req, res) => {
     try {
         const { data: user } = await supabase
             .from('users')
-            .select('id, nama, no_hp, email')
-            .eq('id', id_user)
+            .select('id_user, nama, no_hp, email')
+            .eq('id_user', id_user)
             .single();
 
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const { data: produk } = await supabase
             .from('produk')
-            .select('id, nama, qty, harga')
-            .eq('id', id_produk)
+            .select('id_produk, nama, qty, harga')
+            .eq('id_produk', id_produk)
             .single();
 
         if (!produk) return res.status(404).json({ message: 'Product not found' });
@@ -68,7 +68,7 @@ const createTransaction = async (req, res) => {
             },
             item_details: [
                 {
-                    id: produk.id,
+                    id: produk.id_produk,
                     name: produk.nama,
                     quantity: jumlah,
                     price: produk.harga,
@@ -98,7 +98,7 @@ const createTransaction = async (req, res) => {
 
         const transaction = {
             transaksi_id: transaction_id,
-            id_produk: produk.id,
+            id_produk: produk.id_produk,
             nama_produk: produk.nama,
             jumlah,
             gross_amount,
@@ -129,7 +129,7 @@ const createTransaction = async (req, res) => {
             message: 'Transaction created successfully',
             data: {
                 transaction_id,
-                id_produk: produk.id,
+                id_produk: produk.id_produk,
                 nama_produk: produk.nama,
                 jumlah,
                 gross_amount,
