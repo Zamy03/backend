@@ -127,7 +127,7 @@ const createTransaction = async (req, res) => {
         const { error: updateError } = await supabase
             .from('produk')
             .update({ qty: produk.qty - jumlah })
-            .eq('id', produk.id);
+            .eq('id_produk', produk.id_produk);
 
         if (updateError) throw updateError;
 

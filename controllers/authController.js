@@ -74,7 +74,7 @@ const login = async (req, res) => {
 
         // Generate token JWT
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.id_user, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '18h' }
         );
@@ -140,7 +140,7 @@ const googleCallback = async (req, res) => {
 
         // Generate JWT Token
         const token = jwt.sign(
-            { id: existingUser.id, role: existingUser.role },
+            { id: existingUser.id_user, role: existingUser.role },
             process.env.JWT_SECRET,
             { expiresIn: '18h' }
         );
