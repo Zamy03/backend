@@ -40,19 +40,13 @@ const createTransaction = async (req, res) => {
     const id_user = req.user.id; // ID user dari token JWT
 
     try {
-        console.log("ID User from JWT:", id_user);
         const { data: user } = await supabase
             .from('users')
             .select('id_user, nama, no_hp, email')
             .eq('id_user', id_user)
             .single();
 
-        if (userError) {
-            console.log("Error fetching user:", userError);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        console.log("User Data:", user);
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
         const { data: produk } = await supabase
             .from('produk')

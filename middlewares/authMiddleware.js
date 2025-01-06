@@ -17,6 +17,8 @@ const authenticateToken = (req, res, next) => {
             return res.status(403).json({ message: 'Invalid token', tokenSent: token, secret: process.env.JWT_SECRET });
         }
 
+        console.log("Decoded JWT Payload:", user);
+
         req.user = user;
         next();
     });
