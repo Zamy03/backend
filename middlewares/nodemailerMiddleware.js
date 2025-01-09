@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Ganti dengan layanan email lain jika bukan Gmail
+    service: process.env.EMAIL_SERVICE , // Ganti dengan layanan email lain jika bukan Gmail
     auth: {
         user: process.env.EMAIL_USER, // Email pengirim
         pass: process.env.EMAIL_PASS  // App Password
