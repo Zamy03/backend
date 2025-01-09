@@ -1,5 +1,9 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('./../middlewares/nodemailerMiddleware');
+const cron = require('node-cron');
+
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 const google = require('googleapis').google;
@@ -23,8 +27,40 @@ const authorizationUrl = OAuth2Client.generateAuthUrl({
     include_granted_scopes: true,
 });
 
+// const register = async (req, res) => {
+//     const { nama, no_hp, email, password } = req.body; // Hilangkan `role` dari input
+
+//     try {
+//         // Periksa apakah email sudah digunakan
+//         const { data: existingUser } = await supabase
+//             .from('users')
+//             .select('*')
+//             .eq('email', email)
+//             .single();
+
+//         if (existingUser) return res.status(400).json({ message: 'Email already registered' });
+
+//         // Hash password
+//         const hashedPassword = await bcrypt.hash(password, 10);
+
+//         // Tetapkan `role` sebagai "pelanggan" secara default
+//         const role = 'pelanggan';
+
+//         // Simpan data ke tabel users
+//         const { error } = await supabase
+//             .from('users')
+//             .insert([{ nama, no_hp, email, password: hashedPassword, role }]);
+
+//         if (error) throw error;
+
+//         res.status(201).json({ message: 'User registered successfully' });
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error registering user', error: error.message });
+//     }
+// };
+
 const register = async (req, res) => {
-    const { nama, no_hp, email, password } = req.body; // Hilangkan `role` dari input
+    const { nama, no_hp, email, password } = req.body;
 
     try {
         // Periksa apakah email sudah digunakan
@@ -39,21 +75,107 @@ const register = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Tetapkan `role` sebagai "pelanggan" secara default
-        const role = 'pelanggan';
+        // Generate OTP
+        const otp = crypto.randomInt(100000, 999999); // Generate 6 digit OTP
+        const otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // OTP valid for 2 minutes
 
         // Simpan data ke tabel users
         const { error } = await supabase
             .from('users')
-            .insert([{ nama, no_hp, email, password: hashedPassword, role }]);
+            .insert([{ 
+                nama, 
+                no_hp, 
+                email, 
+                password: hashedPassword, 
+                role: 'pelanggan', 
+                verifikasi: 'pending', // Default status
+                otp, 
+                expired_time: otpExpiry
+            }]);
 
         if (error) throw error;
 
-        res.status(201).json({ message: 'User registered successfully' });
+        // Kirim OTP ke email
+        const emailResponse = await sendEmail({
+            to: email,
+            subject: 'OTP Verification',
+            text: `Your OTP for registration is ${otp}. This OTP is valid for 2 minutes.`,
+            html: `<p>Your OTP for registration is <strong>${otp}</strong>.</p><p>This OTP is valid for 2 minutes.</p>`,
+        });
+
+        if (!emailResponse.success) {
+            return res.status(500).json({ message: 'Failed to send OTP email', error: emailResponse.error });
+        }
+
+        res.status(201).json({ message: 'User registered successfully. Please verify your email with the OTP sent.' });
     } catch (error) {
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
+
+const verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+
+    try {
+        // Cari user berdasarkan email
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (error || !user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Periksa apakah OTP cocok dan masih berlaku
+        if (user.otp !== parseInt(otp)) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        if (new Date() > new Date(user.otp_expiry)) {
+            return res.status(400).json({ message: 'OTP expired' });
+        }
+
+        // Update status verifikasi menjadi true dan hapus OTP
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ verifikasi: true, otp: null, expired_time: null })
+            .eq('email', email);
+
+        if (updateError) throw updateError;
+
+        res.status(200).json({ message: 'User verified successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error verifying OTP', error: error.message });
+    }
+};
+
+// Jalankan setiap 1 menit
+cron.schedule('*/1 * * * *', async () => {
+    try {
+        // Periksa user dengan OTP yang sudah kadaluarsa dan belum diverifikasi
+        const { data: expiredUsers, error } = await supabase
+            .from('users')
+            .select('*')
+            .lte('expired_time', new Date())
+            .eq('verifikasi', 'pending');
+
+        if (error || !expiredUsers || expiredUsers.length === 0) return;
+
+        // Update status menjadi denied
+        for (const user of expiredUsers) {
+            await supabase
+                .from('users')
+                .update({ verifikasi: 'denied', otp: null, expired_time: null })
+                .eq('email', user.email);
+        }
+
+        console.log('Updated verification status for expired OTPs');
+    } catch (error) {
+        console.error('Error updating expired OTPs:', error.message);
+    }
+});
 
 const login = async (req, res) => {
     const { email, password } = req.body;
@@ -118,9 +240,9 @@ const googleCallback = async (req, res) => {
                 .from('users')
                 .insert([{
                     nama: data.name,    // Nama pengguna dari Google
-                    no_hp: '-',         // Anda bisa mengubah ini untuk meminta no_hp di saat login atau registrasi
+                    no_hp: '-',         
                     email: data.email,  // Email dari Google
-                    password: '',       // Anda bisa memberikan password default jika perlu
+                    password: '',       // bisa memberikan password default jika perlu
                     role: 'pelanggan'   // Tentukan role default
                 }]);
 
@@ -154,5 +276,85 @@ const googleCallback = async (req, res) => {
     }
 };
 
+const requestResetPassword = async (req, res) => {
+    const { email } = req.body;
 
-module.exports = { register, login, googleAuth, googleCallback };
+    try {
+        // Cari user berdasarkan email
+        const { data: user, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("email", email)
+            .single();
+
+        if (error || !user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Generate OTP (6 digit angka) dan masa berlaku OTP
+        const otp = crypto.randomInt(100000, 999999);
+        const otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // 2 menit dari sekarang
+
+        // Simpan OTP dan masa berlaku di database
+        const { error: updateError } = await supabase
+            .from("users")
+            .update({ otp, expired_time: otpExpiry })
+            .eq("email", email);
+
+        if (updateError) throw updateError;
+
+        // Kirim OTP ke email pengguna
+        const emailSent = await sendEmail({
+            to: email,
+            subject: "Reset Password OTP",
+            text: `Your OTP for resetting password is: ${otp}`,
+            html: `<p>Your OTP for resetting password is: <strong>${otp}</strong>. It is valid for 2 minutes.</p>`,
+        });
+
+        if (!emailSent.success) {
+            return res.status(500).json({ message: "Failed to send OTP email", error: emailSent.error });
+        }
+
+        res.status(200).json({ message: "OTP sent to email successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error requesting reset password", error: error.message });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    try {
+        // Cari user berdasarkan email
+        const { data: user, error } = await supabase
+            .from("users")
+            .select("*")
+            .eq("email", email)
+            .single();
+
+        if (error || !user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Hash password baru
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password dan hapus OTP
+        const { error: updateError } = await supabase
+            .from("users")
+            .update({
+                password: hashedPassword,
+                otp: null,
+                expired_time: null,
+            })
+            .eq("email", email);
+
+        if (updateError) throw updateError;
+
+        res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error resetting password", error: error.message });
+    }
+};
+
+module.exports = { register, verifyOtp, login, googleAuth, googleCallback, requestResetPassword, resetPassword };
