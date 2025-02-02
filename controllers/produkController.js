@@ -85,7 +85,7 @@ const createProduk = async (req, res) => {
     const isValidProduk = /^[A-Za-z\s]+$/.test(nama); // Hanya huruf dan spasi yang diizinkan
     if (!isValidProduk) {
         return res.status(400).json({ 
-            message: 'nama must only contain letters and spaces' 
+            message: 'Gagal menyimpan produk, Nama produk sudah ada atau tidak sesuai format (berupa huruf dan tidak diisi dengan sembarangan).' 
         });
     }
 
