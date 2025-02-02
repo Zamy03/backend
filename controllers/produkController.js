@@ -82,6 +82,13 @@ const createProduk = async (req, res) => {
         return res.status(400).json({ message: 'All fields and file are required' });
     }
 
+    const isValidProduk = /^[A-Za-z\s]+$/.test(nama); // Hanya huruf dan spasi yang diizinkan
+    if (!isValidProduk) {
+        return res.status(400).json({ 
+            message: 'nama must only contain letters and spaces' 
+        });
+    }
+
     try {
         // Cari ID kategori berdasarkan nama_kategori
         const { data: kategori, error: kategoriError } = await supabase
