@@ -76,8 +76,14 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Generate OTP
-        const otp = crypto.randomInt(100000, 999999); // Generate 6 digit OTP
-        const otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // OTP valid for 2 minutes
+        let otp = crypto.randomInt(100000, 999999); // Generate 6 digit OTP
+        let otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // OTP valid for 2 minutes
+
+        // ✅ SPECIAL CASE: fixed OTP untuk email tertentu
+        if (email === 'gomutzy@gmail.com') {
+            otp = 123456; // fixed
+            otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // biar tidak cepat expired
+        }
 
         // Simpan data ke tabel users
         const { error } = await supabase
